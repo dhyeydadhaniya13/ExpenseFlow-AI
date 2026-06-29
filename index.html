@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseFlow — AI-Powered Financial Intelligence Platform</title>
+    <meta name="description" content="Enterprise-grade AI-powered financial intelligence platform with expense tracking, budget forecasting, receipt scanning, and advanced analytics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="auth-screen" class="auth-screen">
+    <div class="auth-container">
+        <div class="auth-brand">
+            <div class="auth-logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <h1>ExpenseFlow</h1>
+            <p>AI-Powered Financial Intelligence Platform</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form">
+            <h2>Welcome back</h2>
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="you@company.com" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+            <p class="auth-switch">Don't have an account? <a href="#" id="show-register">Sign up</a></p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form" style="display:none">
+            <h2>Create account</h2>
+            <div class="form-group">
+                <label for="reg-name">Full Name</label>
+                <input type="text" id="reg-name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-email">Email</label>
+                <input type="email" id="reg-email" placeholder="you@company.com" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-password">Password</label>
+                <input type="password" id="reg-password" placeholder="Min 6 characters" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="reg-role">Role</label>
+                <select id="reg-role">
+                    <option value="employee">Employee</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                    <option value="super_admin">Super Admin</option>
+                    <option value="auditor">Auditor</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+            <p class="auth-switch">Already have an account? <a href="#" id="show-login">Sign in</a></p>
+        </form>
+    </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" class="app-layout" style="display:none">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <span>ExpenseFlow</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Main</div>
+            <a href="#" class="nav-item active" data-page="dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+            <a href="#" class="nav-item" data-page="expenses"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Expenses</a>
+            <a href="#" class="nav-item" data-page="projects"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Projects</a>
+            <a href="#" class="nav-item" data-page="tasks"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Tasks</a>
+            <a href="#" class="nav-item" data-page="budgets"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Budgets</a>
+            <div class="nav-section-label">Intelligence</div>
+            <a href="#" class="nav-item" data-page="analytics"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
+            <a href="#" class="nav-item" data-page="reports"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Reports</a>
+            <a href="#" class="nav-item" data-page="smart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>AI Insights</a>
+            <div class="nav-section-label">Enterprise</div>
+            <a href="#" class="nav-item" data-page="approvals"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Approvals</a>
+            <a href="#" class="nav-item" data-page="audit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Audit Log</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info" id="user-info">
+                <div class="user-avatar" id="user-avatar">JD</div>
+                <div class="user-details">
+                    <span class="user-name" id="user-name">John Doe</span>
+                    <span class="user-role" id="user-role">Admin</span>
+                </div>
+            </div>
+            <button class="btn-icon" id="logout-btn" title="Sign out">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-area">
+        <!-- Header -->
+        <header class="topbar">
+            <button class="btn-icon mobile-menu" id="mobile-menu-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <h1 class="topbar-title" id="page-title">Dashboard</h1>
+            <div class="topbar-actions">
+                <button class="btn-icon notif-btn" id="notif-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                    <span class="notif-badge" id="notif-badge">0</span>
+                </button>
+                <!-- Notification dropdown -->
+                <div class="notif-dropdown" id="notif-dropdown">
+                    <div class="notif-header"><h3>Notifications</h3><button class="btn-text" id="clear-notifs">Clear all</button></div>
+                    <div class="notif-list" id="notif-list"><p class="empty-state-sm">No notifications</p></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Pages Container -->
+        <main class="content" id="content">
+
+            <!-- DASHBOARD PAGE -->
+            <div class="page active" id="page-dashboard">
+                <div class="stats-grid stats-grid-6" id="dashboard-stats"></div>
+                <!-- Financial Health + Forecast Row -->
+                <div class="grid-2" style="margin-bottom:20px">
+                    <div class="card card-glow" id="health-widget">
+                        <div class="card-head"><h3><span class="card-head-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>Financial Health Score</h3></div>
+                        <div class="card-body" id="health-gauge-container">
+                            <div class="health-gauge-wrap">
+                                <svg class="health-gauge" viewBox="0 0 120 120" width="140" height="140">
+                                    <circle cx="60" cy="60" r="52" fill="none" stroke="var(--bg-4)" stroke-width="10"/>
+                                    <circle id="health-gauge-circle" cx="60" cy="60" r="52" fill="none" stroke="var(--green)" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 60 60)"/>
+                                    <text id="health-score-text" x="60" y="55" text-anchor="middle" fill="var(--text-0)" font-size="28" font-weight="800"></text>
+                                    <text id="health-grade-text" x="60" y="75" text-anchor="middle" fill="var(--text-2)" font-size="14" font-weight="600"></text>
+                                </svg>
+                                <div class="health-factors" id="health-factors"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-glow">
+                        <div class="card-head"><h3><span class="card-head-icon icon-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>Spending Forecast</h3></div>
+                        <div class="card-body"><canvas id="chart-forecast" height="220"></canvas></div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-head"><h3>Expense Trend</h3></div><div class="card-body"><canvas id="chart-trend" height="220"></canvas></div></div>
+                    <div class="card"><div class="card-head"><h3>By Category</h3></div><div class="card-body"><canvas id="chart-category" height="220"></canvas></div></div>
+                </div>
+                <div class="grid-2" style="margin-top:20px">
+                    <div class="card"><div class="card-head"><h3>Recent Expenses</h3></div><div class="card-body" id="recent-expenses"></div></div>
+                    <div class="card"><div class="card-head"><h3>Project Status</h3></div><div class="card-body" id="project-overview"></div></div>
+                </div>
+            </div>
+
+            <!-- EXPENSES PAGE -->
+            <div class="page" id="page-expenses">
+                <div class="page-toolbar">
+                    <div class="filter-group">
+                        <select id="filter-category" class="input-sm"><option value="">All Categories</option></select>
+                        <input type="month" id="filter-month" class="input-sm">
+                        <select id="filter-project" class="input-sm"><option value="">All Projects</option></select>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn btn-secondary btn-with-icon" id="scan-receipt-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2"/><path d="M17 3h2a2 2 0 012 2v2"/><path d="M21 17v2a2 2 0 01-2 2h-2"/><path d="M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>Scan Receipt</button>
+                        <button class="btn btn-primary btn-with-icon" id="add-expense-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Add Expense</button>
+                    </div>
+                </div>
+                <div class="card"><div class="card-body table-wrap"><table class="data-table" id="expense-table"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Project</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody id="expense-tbody"></tbody></table></div></div>
+            </div>
+
+            <!-- PROJECTS PAGE -->
+            <div class="page" id="page-projects">
+                <div class="page-toolbar"><div></div><button class="btn btn-primary btn-with-icon" id="add-project-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>New Project</button></div>
+                <div class="projects-grid" id="projects-grid"></div>
+            </div>
+
+            <!-- TASKS PAGE (Kanban) -->
+            <div class="page" id="page-tasks">
+                <div class="page-toolbar">
+                    <select id="task-project-filter" class="input-sm"><option value="">All Projects</option></select>
+                    <button class="btn btn-primary btn-with-icon" id="add-task-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Add Task</button>
+                </div>
+                <div class="kanban-board" id="kanban-board">
+                    <div class="kanban-col" data-status="todo"><div class="kanban-col-head"><span class="kanban-dot dot-todo"></span>To Do <span class="kanban-count" id="count-todo">0</span></div><div class="kanban-cards" id="kanban-todo"></div></div>
+                    <div class="kanban-col" data-status="in-progress"><div class="kanban-col-head"><span class="kanban-dot dot-progress"></span>In Progress <span class="kanban-count" id="count-progress">0</span></div><div class="kanban-cards" id="kanban-progress"></div></div>
+                    <div class="kanban-col" data-status="review"><div class="kanban-col-head"><span class="kanban-dot dot-review"></span>Review <span class="kanban-count" id="count-review">0</span></div><div class="kanban-cards" id="kanban-review"></div></div>
+                    <div class="kanban-col" data-status="done"><div class="kanban-col-head"><span class="kanban-dot dot-done"></span>Done <span class="kanban-count" id="count-done">0</span></div><div class="kanban-cards" id="kanban-done"></div></div>
+                </div>
+            </div>
+
+            <!-- BUDGETS PAGE -->
+            <div class="page" id="page-budgets">
+                <div class="page-toolbar"><div></div><button class="btn btn-primary btn-with-icon" id="add-budget-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Set Budget</button></div>
+                <!-- AI Budget Recommendations -->
+                <div class="card card-ai" id="budget-recommendations-card" style="margin-bottom:20px">
+                    <div class="card-head"><h3><span class="card-head-icon icon-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96.44 2.5 2.5 0 01-2.96-3.08 3 3 0 01-.34-5.58 2.5 2.5 0 011.32-4.24 2.5 2.5 0 011.44-3A2.5 2.5 0 019.5 2z"/><path d="M14.5 2A2.5 2.5 0 0012 4.5v15a2.5 2.5 0 004.96.44 2.5 2.5 0 002.96-3.08 3 3 0 00.34-5.58 2.5 2.5 0 00-1.32-4.24 2.5 2.5 0 00-1.44-3A2.5 2.5 0 0014.5 2z"/></svg></span>AI Budget Recommendations</h3><button class="btn btn-secondary btn-sm btn-with-icon" id="refresh-recommendations-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Refresh</button></div>
+                    <div class="card-body" id="budget-recommendations">
+                        <div class="skeleton-grid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
+                    </div>
+                </div>
+                <div class="budgets-grid" id="budgets-grid"></div>
+            </div>
+
+            <!-- ANALYTICS PAGE -->
+            <div class="page" id="page-analytics">
+                <div class="grid-2">
+                    <div class="card"><div class="card-head"><h3>Monthly Comparison</h3></div><div class="card-body"><canvas id="chart-monthly" height="250"></canvas></div></div>
+                    <div class="card"><div class="card-head"><h3>Spending by Payment Method</h3></div><div class="card-body"><canvas id="chart-payment" height="250"></canvas></div></div>
+                </div>
+                <div class="grid-2" style="margin-top:20px">
+                    <div class="card"><div class="card-head"><h3>Project Budget vs Actual</h3></div><div class="card-body"><canvas id="chart-budget-actual" height="250"></canvas></div></div>
+                    <div class="card"><div class="card-head"><h3>Daily Spending (This Month)</h3></div><div class="card-body"><canvas id="chart-daily" height="250"></canvas></div></div>
+                </div>
+            </div>
+
+            <!-- REPORTS PAGE -->
+            <div class="page" id="page-reports">
+                <div class="card"><div class="card-head"><h3>Generate Reports</h3></div>
+                    <div class="card-body">
+                        <div class="report-tabs">
+                            <button class="report-tab active" data-report="expense">Expense Report</button>
+                            <button class="report-tab" data-report="project">Project Report</button>
+                            <button class="report-tab" data-report="budget">Budget Report</button>
+                            <button class="report-tab" data-report="forecast">Forecast Report</button>
+                            <button class="report-tab" data-report="audit">Audit Report</button>
+                        </div>
+                        <div class="report-controls">
+                            <div class="form-group"><label>From</label><input type="date" id="report-from" class="input"></div>
+                            <div class="form-group"><label>To</label><input type="date" id="report-to" class="input"></div>
+                            <div class="form-group"><label>Type</label><select id="report-type" class="input">
+                                <option value="expense">Expense Report</option>
+                                <option value="project">Project Report</option>
+                                <option value="budget">Budget Report</option>
+                                <option value="forecast">Forecast Report</option>
+                                <option value="audit">Audit Report</option>
+                            </select></div>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-primary btn-with-icon" id="gen-pdf-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Export PDF</button>
+                            <button class="btn btn-secondary btn-with-icon" id="gen-excel-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="12" y1="13" x2="12" y2="17"/></svg>Export Excel</button>
+                            <button class="btn btn-secondary btn-with-icon" id="gen-csv-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>Export CSV</button>
+                        </div>
+                        <div id="report-preview" class="report-preview" style="margin-top:20px"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI INSIGHTS PAGE -->
+            <div class="page" id="page-smart">
+                <!-- Forecasting Section -->
+                <div class="grid-2" style="margin-bottom:20px">
+                    <div class="card card-ai card-glow">
+                        <div class="card-head"><h3><span class="card-head-icon icon-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>Expense Forecast</h3></div>
+                        <div class="card-body" id="forecast-cards"></div>
+                    </div>
+                    <div class="card card-ai card-glow">
+                        <div class="card-head"><h3><span class="card-head-icon icon-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>Financial Health</h3></div>
+                        <div class="card-body" id="ai-health-detail"></div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="card card-ai"><div class="card-head"><h3><span class="card-head-icon icon-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Spending Patterns</h3></div><div class="card-body" id="ai-patterns"></div></div>
+                    <div class="card card-ai"><div class="card-head"><h3><span class="card-head-icon icon-orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>Budget Predictions</h3></div><div class="card-body" id="ai-predictions"></div></div>
+                </div>
+                <div class="card card-ai" style="margin-top:20px"><div class="card-head"><h3><span class="card-head-icon icon-yellow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14"/></svg></span>Smart Suggestions</h3></div><div class="card-body" id="ai-suggestions"></div></div>
+            </div>
+
+            <!-- APPROVALS PAGE -->
+            <div class="page" id="page-approvals">
+                <div class="approval-stats" id="approval-stats"></div>
+                <div class="card">
+                    <div class="card-head"><h3>Approval Queue</h3></div>
+                    <div class="card-body" id="approval-content">
+                        <p class="empty-state-sm">No pending approvals</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUDIT LOG PAGE -->
+            <div class="page" id="page-audit">
+                <div class="audit-stats" id="audit-stats-bar"></div>
+                <div class="card">
+                    <div class="card-head"><h3>Audit Trail</h3></div>
+                    <div class="card-body" id="audit-content">
+                        <p class="empty-state-sm">No audit logs yet</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Expense Modal -->
+<div class="modal-overlay" id="expense-modal">
+    <div class="modal">
+        <div class="modal-head"><h3 id="expense-modal-title">Add Expense</h3><button class="btn-icon modal-close" data-close="expense-modal">&times;</button></div>
+        <form id="expense-form">
+            <input type="hidden" id="exp-id">
+            <!-- Receipt Scanner Zone -->
+            <div class="scan-zone" id="receipt-drop-zone">
+                <div class="scan-zone-inner">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span>Drop receipt image here or <strong>click to scan</strong></span>
+                    <input type="file" id="scan-file-input" accept="image/*,.pdf" style="display:none">
+                </div>
+                <div class="scan-progress" id="scan-progress" style="display:none">
+                    <div class="scan-progress-bar"><div class="scan-progress-fill" id="scan-progress-fill"></div></div>
+                    <span class="scan-progress-text" id="scan-progress-text">Scanning...</span>
+                </div>
+                <div class="scan-results" id="scan-results" style="display:none"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Description</label><input type="text" id="exp-desc" class="input" placeholder="e.g. Team lunch" required></div>
+                <div class="form-group"><label>Amount (₹)</label><input type="number" id="exp-amount" class="input" placeholder="0.00" step="0.01" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Category <span class="cat-confidence" id="cat-confidence"></span></label><select id="exp-category" class="input"></select></div>
+                <div class="form-group"><label>Date</label><input type="date" id="exp-date" class="input" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Project (optional)</label><select id="exp-project" class="input"><option value="">None</option></select></div>
+                <div class="form-group"><label>Payment Method</label><select id="exp-payment" class="input"><option value="cash">Cash</option><option value="card">Card</option><option value="upi">UPI</option><option value="bank">Bank Transfer</option></select></div>
+            </div>
+            <div class="form-group"><label>Receipt (optional)</label><input type="file" id="exp-receipt" class="input" accept="image/*"><div id="receipt-preview" class="receipt-preview"></div></div>
+            <div class="modal-footer"><button type="button" class="btn btn-ghost" data-close="expense-modal">Cancel</button><button type="submit" class="btn btn-primary">Save Expense</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Project Modal -->
+<div class="modal-overlay" id="project-modal">
+    <div class="modal">
+        <div class="modal-head"><h3 id="project-modal-title">New Project</h3><button class="btn-icon modal-close" data-close="project-modal">&times;</button></div>
+        <form id="project-form">
+            <input type="hidden" id="proj-id">
+            <div class="form-group"><label>Project Name</label><input type="text" id="proj-name" class="input" required></div>
+            <div class="form-group"><label>Description</label><textarea id="proj-desc" class="input" rows="2"></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>Budget (₹)</label><input type="number" id="proj-budget" class="input" step="0.01"></div>
+                <div class="form-group"><label>Status</label><select id="proj-status" class="input"><option value="planning">Planning</option><option value="active">Active</option><option value="completed">Completed</option><option value="on-hold">On Hold</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Start Date</label><input type="date" id="proj-start" class="input"></div>
+                <div class="form-group"><label>End Date</label><input type="date" id="proj-end" class="input"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-ghost" data-close="project-modal">Cancel</button><button type="submit" class="btn btn-primary">Save Project</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="task-modal">
+    <div class="modal">
+        <div class="modal-head"><h3 id="task-modal-title">Add Task</h3><button class="btn-icon modal-close" data-close="task-modal">&times;</button></div>
+        <form id="task-form">
+            <input type="hidden" id="task-id">
+            <div class="form-group"><label>Title</label><input type="text" id="task-title" class="input" required></div>
+            <div class="form-group"><label>Description</label><textarea id="task-desc-input" class="input" rows="2"></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>Project</label><select id="task-project" class="input"></select></div>
+                <div class="form-group"><label>Priority</label><select id="task-priority" class="input"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Status</label><select id="task-status" class="input"><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="review">Review</option><option value="done">Done</option></select></div>
+                <div class="form-group"><label>Due Date</label><input type="date" id="task-due" class="input"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-ghost" data-close="task-modal">Cancel</button><button type="submit" class="btn btn-primary">Save Task</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Budget Modal -->
+<div class="modal-overlay" id="budget-modal">
+    <div class="modal">
+        <div class="modal-head"><h3>Set Budget</h3><button class="btn-icon modal-close" data-close="budget-modal">&times;</button></div>
+        <form id="budget-form">
+            <input type="hidden" id="bud-id">
+            <div class="form-row">
+                <div class="form-group"><label>Amount (₹)</label><input type="number" id="bud-amount" class="input" required></div>
+                <div class="form-group"><label>Period</label><select id="bud-period" class="input"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Category (optional)</label><select id="bud-category" class="input"><option value="">All Categories</option></select></div>
+                <div class="form-group"><label>Alert at (%)</label><input type="number" id="bud-alert" class="input" value="80" min="1" max="100"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-ghost" data-close="budget-modal">Cancel</button><button type="submit" class="btn btn-primary">Save Budget</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Approval Detail Modal -->
+<div class="modal-overlay" id="approval-modal">
+    <div class="modal">
+        <div class="modal-head"><h3>Expense Approval</h3><button class="btn-icon modal-close" data-close="approval-modal">&times;</button></div>
+        <div class="modal-body-content" style="padding:22px">
+            <div id="approval-detail"></div>
+            <div class="form-group" style="margin-top:16px">
+                <label>Comment / Reason</label>
+                <textarea id="approval-comment" class="input" rows="2" placeholder="Optional comment..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-close="approval-modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="modal-reject-btn">Reject</button>
+                <button type="button" class="btn btn-primary" id="modal-approve-btn">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- AI Chat Floating Button & Panel -->
+<button class="chat-fab" id="chat-fab" title="AI Financial Assistant">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span class="chat-fab-badge" id="chat-fab-badge"></span>
+</button>
+<div class="chat-panel" id="chat-panel">
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <div class="chat-bot-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></div>
+            <div><strong>Financial Assistant</strong><span class="chat-status">Online</span></div>
+        </div>
+        <button class="btn-icon" id="chat-close">&times;</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-chips" id="chat-chips">
+        <button class="chat-chip" data-query="Where am I spending the most?"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> Top Spending</button>
+        <button class="chat-chip" data-query="Am I over budget?"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Budget Status</button>
+        <button class="chat-chip" data-query="How can I save money?"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14"/></svg> Save Money</button>
+        <button class="chat-chip" data-query="What's my forecast for next month?"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Forecast</button>
+    </div>
+    <div class="chat-input-bar">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Ask about your finances...">
+        <button class="chat-send-btn" id="chat-send-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+    </div>
+</div>
+
+<script src="data.js"></script>
+<script src="icons.js"></script>
+<script src="rbac.js"></script>
+<script src="audit.js"></script>
+<script src="approval.js"></script>
+<script src="ai-engine.js"></script>
+<script src="ai-scanner.js"></script>
+<script src="ui.js"></script>
+<script src="features.js"></script>
+<script src="ai-assistant.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
