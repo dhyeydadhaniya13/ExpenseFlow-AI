@@ -33,11 +33,68 @@ function daysLeft(d){ if(!d) return Infinity; return Math.ceil((new Date(d)-new 
 function getCat(id){ const c=CATEGORIES.find(x=>x.id===id)||CATEGORIES[9]; return { ...c, icon: typeof catIcon === 'function' ? catIcon(c.id) : '' }; }
 function timeAgo(d){ const s=Math.floor((Date.now()-new Date(d))/1000); if(s<60) return 'just now'; if(s<3600) return Math.floor(s/60)+'m ago'; if(s<86400) return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago'; }
 
+/* --- API Sync Engine --- */
+let syncTimeout = null;
+const SYNC_KEYS = ['ef_expenses', 'ef_projects', 'ef_tasks', 'ef_budgets', 'ef_notifs', 'ef_users', 'ef_approvals', 'ef_cat_corrections'];
+
+async function triggerBackgroundSync() {
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(async () => {
+    try {
+      const user = getCurrentUser();
+      if (!user) return; // Only sync if logged in
+      const userId = user.email;
+      
+      const payload = {};
+      SYNC_KEYS.forEach(key => {
+        payload[key] = localStorage.getItem(key);
+      });
+      
+      await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+        body: JSON.stringify(payload)
+      });
+    } catch(e) {
+      console.warn('Background sync failed:', e);
+    }
+  }, 2000);
+}
+
+window.syncWithDatabase = async function() {
+  try {
+    const user = getCurrentUser();
+    if (!user) return false;
+    const userId = user.email;
+    
+    const res = await fetch('/api/sync', {
+      headers: { 'X-User-Id': userId }
+    });
+    const { success, data } = await res.json();
+    if (success && data) {
+      Object.keys(data).forEach(key => {
+        if(data[key]) localStorage.setItem(key, data[key]);
+      });
+      return true;
+    }
+    return false;
+  } catch(e) {
+    console.warn('Initial sync failed. Using local data.', e);
+    return false;
+  }
+};
+
 /* --- Storage helpers --- */
 function load(key){ try{ return JSON.parse(localStorage.getItem(key))||[]; }catch{ return []; } }
-function save(key,data){ localStorage.setItem(key,JSON.stringify(data)); }
+function save(key,data){ 
+  localStorage.setItem(key,JSON.stringify(data)); 
+  if(SYNC_KEYS.includes(key)) triggerBackgroundSync();
+}
 function loadObj(key){ try{ return JSON.parse(localStorage.getItem(key))||null; }catch{ return null; } }
-function saveObj(key,data){ localStorage.setItem(key,JSON.stringify(data)); }
+function saveObj(key,data){ 
+  localStorage.setItem(key,JSON.stringify(data)); 
+  if(SYNC_KEYS.includes(key)) triggerBackgroundSync();
+}
 
 /* --- CRUD --- */
 function getExpenses(){ return load('ef_expenses'); }

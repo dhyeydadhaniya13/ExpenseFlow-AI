@@ -4,7 +4,7 @@
 document.getElementById('show-register').onclick=e=>{e.preventDefault();document.getElementById('login-form').style.display='none';document.getElementById('register-form').style.display='block';};
 document.getElementById('show-login').onclick=e=>{e.preventDefault();document.getElementById('register-form').style.display='none';document.getElementById('login-form').style.display='block';};
 
-document.getElementById('register-form').onsubmit=e=>{
+document.getElementById('register-form').onsubmit=async e=>{
   e.preventDefault();
   const name=document.getElementById('reg-name').value.trim();
   const email=document.getElementById('reg-email').value.trim();
@@ -15,12 +15,14 @@ document.getElementById('register-form').onsubmit=e=>{
   const user={id:genId(),name,email,password:btoa(pw),role,createdAt:new Date().toISOString()};
   users.push(user); saveUsers(users);
   setCurrentUser({id:user.id,name,email,role});
-  seedIfEmpty(); enterApp();
+  seedIfEmpty(); 
+  if(typeof window.syncWithDatabase === 'function') await window.syncWithDatabase();
+  enterApp();
   if(typeof logAudit==='function') logAudit(AUDIT_ACTIONS.USER_REGISTER,'user',user.id,null,{name,email,role},name);
   toast('Account created!');
 };
 
-document.getElementById('login-form').onsubmit=e=>{
+document.getElementById('login-form').onsubmit=async e=>{
   e.preventDefault();
   const email=document.getElementById('login-email').value.trim();
   const pw=document.getElementById('login-password').value;
@@ -28,7 +30,9 @@ document.getElementById('login-form').onsubmit=e=>{
   const user=users.find(u=>u.email===email&&atob(u.password)===pw);
   if(!user){toast('Invalid email or password','error');return;}
   setCurrentUser({id:user.id,name:user.name,email:user.email,role:user.role});
-  seedIfEmpty(); enterApp();
+  seedIfEmpty(); 
+  if(typeof window.syncWithDatabase === 'function') await window.syncWithDatabase();
+  enterApp();
   if(typeof logAudit==='function') logAudit(AUDIT_ACTIONS.USER_LOGIN,'user',user.id,null,null,user.name);
   toast('Welcome back, '+user.name+'!');
 };
@@ -333,8 +337,12 @@ const refreshRecBtn=document.getElementById('refresh-recommendations-btn');
 if(refreshRecBtn) refreshRecBtn.onclick=()=>{renderBudgetRecommendations();toast('Recommendations refreshed');};
 
 // --- Init ---
-(function init(){
+(async function init(){
   const user=getCurrentUser();
-  if(user){seedIfEmpty();enterApp();}
+  if(user){
+    seedIfEmpty();
+    if(typeof window.syncWithDatabase === 'function') await window.syncWithDatabase();
+    enterApp();
+  }
   else{document.getElementById('auth-screen').style.display='flex';}
 })();
